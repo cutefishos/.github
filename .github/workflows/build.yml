@@ -1,0 +1,92 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      dependencies:
+        description: Cutefish repositories to build and install first, in build order
+        type: string
+        default: ''
+      packages:
+        description: Debian packages the project needs beyond the common set
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+
+    concurrency:
+      group: build-${{ github.repository }}-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Check out the CI scripts
+        uses: actions/checkout@v4
+        with:
+          repository: cutefishos/.github
+          path: .cutefish-ci
+
+      - name: Install packages
+        run: .cutefish-ci/ci/install-packages.sh ${{ inputs.packages }}
+
+      - name: Check out ${{ github.event.repository.name }}
+        uses: actions/checkout@v4
+        with:
+          path: src/${{ github.event.repository.name }}
+
+      - name: Check out the dependencies
+        env:
+          DEPENDENCIES: ${{ inputs.dependencies }}
+        run: |
+          for dependency in $DEPENDENCIES; do
+            git clone --quiet --depth 1 "https://github.com/cutefishos/$dependency.git" "src/$dependency"
+          done
+
+      # Skia takes most of the build; its sources and objects are kept until
+      # the pinned revision or its build arguments change.
+      - name: Restore Skia
+        id: skia
+        if: hashFiles('src/cutefish-toolkit/scripts/fetch-skia.sh') != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            src/cutefish-toolkit/third_party/skia
+            build/cutefish-toolkit/skia
+          key: skia-${{ hashFiles('src/cutefish-toolkit/scripts/fetch-skia.sh', 'src/cutefish-toolkit/cmake/Skia.cmake') }}
+
+      - name: Restore the compiler cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .ccache
+          key: ccache-${{ github.run_id }}
+          restore-keys: ccache-
+
+      - name: Build and test
+        env:
+          DEPENDENCIES: ${{ inputs.dependencies }}
+        run: |
+          export CCACHE_DIR="$PWD/.ccache" CCACHE_MAXSIZE=2G
+          .cutefish-ci/ci/build.sh "${{ github.event.repository.name }}" $DEPENDENCIES
+
+      - name: Save Skia
+        if: >-
+          always() && steps.skia.outcome == 'success' && steps.skia.outputs.cache-hit != 'true' &&
+          hashFiles('build/cutefish-toolkit/skia/libskia.a') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            src/cutefish-toolkit/third_party/skia
+            build/cutefish-toolkit/skia
+          key: ${{ steps.skia.outputs.cache-primary-key }}
+
+      - name: Save the compiler cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .ccache
+          key: ccache-${{ github.run_id }}
