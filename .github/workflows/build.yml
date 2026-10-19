@@ -11,6 +11,10 @@ on:
         description: Debian packages the project needs beyond the common set
         type: string
         default: ''
+      test-projects:
+        description: Directories of the project holding CMake test projects of their own
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -19,6 +23,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     container: debian:trixie
+
+    defaults:
+      run:
+        shell: bash
 
     concurrency:
       group: build-${{ github.repository }}-${{ github.ref }}
@@ -69,9 +77,14 @@ jobs:
       - name: Build and test
         env:
           DEPENDENCIES: ${{ inputs.dependencies }}
+          TEST_PROJECTS: ${{ inputs.test-projects }}
         run: |
           export CCACHE_DIR="$PWD/.ccache" CCACHE_MAXSIZE=2G
-          .cutefish-ci/ci/build.sh "${{ github.event.repository.name }}" $DEPENDENCIES
+          options=()
+          for test_project in $TEST_PROJECTS; do
+            options+=(--test-project "$test_project")
+          done
+          .cutefish-ci/ci/build.sh "${options[@]}" "${{ github.event.repository.name }}" $DEPENDENCIES
 
       - name: Save Skia
         if: >-
