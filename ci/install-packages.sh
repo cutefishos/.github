@@ -14,6 +14,7 @@ packages=(
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libva-dev
   libxcb1-dev libxcb-composite0-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-sync-dev
   libarchive-dev libfuse3-dev libmtp-dev libsmbclient-dev libssh-dev libzip-dev
+  libbz2-dev liblzma-dev liblzfse-dev
   libcrypt-dev libxcursor-dev libpcre2-dev gtk-update-icon-cache
 
   # Tests: a private session bus, a locale, software rendering and the fonts the
