@@ -21,7 +21,7 @@ packages=(
   # pixel and text tests compare against.
   libgtest-dev dbus locales libegl-mesa0 libgl1-mesa-dri
   fonts-noto-core fonts-noto-mono fonts-noto-ui-core fonts-noto-extra fonts-noto-cjk fonts-noto-color-emoji
-  fonts-dejavu-core fonts-dejavu-mono
+  fonts-dejavu-core fonts-dejavu-mono fonts-inter
 )
 
 export DEBIAN_FRONTEND=noninteractive
