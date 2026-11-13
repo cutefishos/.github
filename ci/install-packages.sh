@@ -4,7 +4,7 @@
 set -Eeuo pipefail
 
 packages=(
-  ca-certificates git cmake ninja-build pkg-config g++ clang python3 gettext ccache
+  ca-certificates curl git cmake ninja-build pkg-config g++ clang python3 gettext ccache
   libwayland-dev libwayland-bin wayland-protocols
   libegl-dev libgles-dev libgbm-dev libdrm-dev
   libxkbcommon-dev libinput-dev libseat-dev libudev-dev libsystemd-dev libpam0g-dev
