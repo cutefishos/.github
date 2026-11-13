@@ -51,9 +51,12 @@ build_project() {
 
   echo "::group::$project"
 
-  if [[ -x "$src/scripts/fetch-skia.sh" ]]; then
-    "$src/scripts/fetch-skia.sh"
-  fi
+  # Skia (cutefish-toolkit) and PDFium (cutefish-framework), at their pinned revisions.
+  for fetch in "$src"/scripts/fetch-skia.sh "$src"/scripts/fetch-pdfium.sh; do
+    if [[ -x "$fetch" ]]; then
+      "$fetch"
+    fi
+  done
 
   cmake -S "$src" -B "$build" -G Ninja \
     -DCMAKE_INSTALL_PREFIX=/usr \
