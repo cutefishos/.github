@@ -15,6 +15,10 @@ on:
         description: Directories of the project holding CMake test projects of their own
         type: string
         default: ''
+      released:
+        description: Packages of cutefishos/packaging built from upstream release tarballs, to build and install first
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -41,6 +45,10 @@ jobs:
 
       - name: Install packages
         run: .cutefish-ci/ci/install-packages.sh ${{ inputs.packages }}
+
+      - name: Build the released packages
+        if: inputs.released != ''
+        run: .cutefish-ci/ci/build-released.sh ${{ inputs.released }}
 
       - name: Check out ${{ github.event.repository.name }}
         uses: actions/checkout@v4
