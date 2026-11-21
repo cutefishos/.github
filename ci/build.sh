@@ -38,6 +38,15 @@ ROOT=$PWD
 JOBS=$(nproc)
 TEST_USER=cutefish-ci
 
+# Each test runs in user namespaces of its own with a fresh /run/user, the
+# build listing tests too. The runner's AppArmor otherwise leaves an
+# unprivileged user's namespace without the rights to map its IDs.
+restrict=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
+if [[ -e "$restrict" ]]; then
+  echo 0 > "$restrict"
+fi
+install -d -m 755 /run/user
+
 launcher_options=()
 if command -v ccache >/dev/null; then
   launcher_options=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
