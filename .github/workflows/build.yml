@@ -26,7 +26,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    container: debian:trixie
+    container:
+      image: debian:trixie
+      # Each test runs in user namespaces of its own, which the runner keeps from unprivileged containers.
+      options: --privileged
 
     defaults:
       run:
